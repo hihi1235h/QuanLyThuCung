@@ -1,0 +1,55 @@
+﻿=============================================
+DANH SÁCH TÀI KHOẢN VÀ MẬT KHẨU
+HỆ THỐNG QUẢN LÝ THÚ CƯNG
+=============================================
+
+THÔNG TIN CHUNG
+=============================================
+MẬT KHẨU CHUNG CHO TẤT CẢ TÀI KHOẢN: 123456
+
+SỐ LƯỢNG MẶC ĐỊNH:
+- Tổng số Users: 15 (có thể thay đổi trong script)
+- Tổng số Users tối đa: 20 (giới hạn bởi số tên mẫu)
+- Tài khoản Admin: 1 (admin)
+- Tài khoản User thường: 14 (user1 đến user14)
+
+=============================================
+TÀI KHOẢN ADMIN
+=============================================
+
+┌──────────────┬──────────────┬─────────────────────┬────────────────────────────┐
+│ Username     │ Password     │ FullName            │ Email                      │
+├──────────────┼──────────────┼─────────────────────┼────────────────────────────┤
+│ admin        │ 123456       │ Quản trị hệ thống   │ admin@petmanager.com      │
+└──────────────┴──────────────┴─────────────────────┴────────────────────────────┘
+
+=============================================
+TÀI KHOẢN USER THƯỜNG
+=============================================
+
+Các tài khoản user được tạo tự động với format:
+
+- Username: user1, user2, user3, ... userN
+- Password: 123456 (chung cho tất cả)
+- Email: user1@petmanager.com, user2@petmanager.com, ...
+- FullName: Tên tiếng Việt ngẫu nhiên (từ danh sách 20 tên có sẵn)
+
+┌──────────────┬──────────────┬─────────────────────┬────────────────────────────┐
+│ Username     │ Password     │ FullName            │ Email                      │
+├──────────────┼──────────────┼─────────────────────┼────────────────────────────┤
+│ user1        │ 123456       │ [Ngẫu nhiên]        │ user1@petmanager.com      │
+│ user2        │ 123456       │ [Ngẫu nhiên]        │ user2@petmanager.com      │
+│ user3        │ 123456       │ [Ngẫu nhiên]        │ user3@petmanager.com      │
+│ user4        │ 123456       │ [Ngẫu nhiên]        │ user4@petmanager.com      │
+│ user5        │ 123456       │ [Ngẫu nhiên]        │ user5@petmanager.com      │
+│ user6        │ 123456       │ [Ngẫu nhiên]        │ user6@petmanager.com      │
+│ user7        │ 123456       │ [Ngẫu nhiên]        │ user7@petmanager.com      │
+│ user8        │ 123456       │ [Ngẫu nhiên]        │ user8@petmanager.com      │
+│ user9        │ 123456       │ [Ngẫu nhiên]        │ user9@petmanager.com      │
+│ user10       │ 123456       │ [Ngẫu nhiên]        │ user10@petmanager.com     │
+│ user11       │ 123456       │ [Ngẫu nhiên]        │ user11@petmanager.com     │
+│ user12       │ 123456       │ [Ngẫu nhiên]        │ user12@petmanager.com     │
+│ user13       │ 123456       │ [Ngẫu nhiên]        │ user13@petmanager.com     │
+│ user14       │ 123456       │ [Ngẫu nhiên]        │ user14@petmanager.com     │
+│ user15       │ 123456       │ [Ngẫu nhiên]        │ user15@petmanager.com     │
+└──────────────┴──────────────┴─────────────────────┴────────────────────────────┘
