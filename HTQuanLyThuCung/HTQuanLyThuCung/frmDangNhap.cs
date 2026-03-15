@@ -11,7 +11,6 @@ namespace HTQuanLyThuCung
     {
         private const int KHONG_CO_LOI = 0;
         private const int TAI_KHOAN_BI_KHOA = 2;
-
         private int _soLanDangNhapSai = 0;
         private DateTime? _thoiGianKhoaDen = null;
 
@@ -79,6 +78,7 @@ namespace HTQuanLyThuCung
                 MessageBox.Show($"Tài khoản bị khóa. Thử lại sau {soPhut} phút.");
                 return true;
             }
+
             return false;
         }
 
@@ -104,13 +104,15 @@ namespace HTQuanLyThuCung
         private DataTable XacThucNguoiDung()
         {
             string user = txtTaiKhoan.Text.Trim();
-            string pass = txtMatKhau.Text;
+
+            // HASH mật khẩu trước khi gửi xuống SQL  
+            string pass = PasswordHelper.HashPassword(txtMatKhau.Text);
 
             SqlParameter[] pr =
             {
-                new SqlParameter("@Username",user),
-                new SqlParameter("@Password",pass)
-            };
+            new SqlParameter("@Username", user),
+            new SqlParameter("@Password", pass)
+        };
 
             return DatabaseHelper.ExecuteStoredProcedure("sp_UserLogin", pr);
         }
@@ -155,5 +157,5 @@ namespace HTQuanLyThuCung
             txtMatKhau.Clear();
             txtMatKhau.Focus();
         }
-    }
+    }  
 }
