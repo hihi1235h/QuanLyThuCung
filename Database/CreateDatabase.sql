@@ -258,6 +258,55 @@ SET @Result = 1
 END
 GO
 
+IF OBJECT_ID('sp_UserRegister','P') IS NOT NULL
+DROP PROCEDURE sp_UserRegister
+GO
+
+CREATE PROCEDURE sp_UserRegister
+    @Username NVARCHAR(50),
+    @Password NVARCHAR(255),
+    @FullName NVARCHAR(100),
+    @Email NVARCHAR(100),
+    @UserId INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- username tồn tại
+    IF EXISTS (SELECT 1 FROM Users WHERE Username=@Username)
+    BEGIN
+        SET @UserId = -1
+        RETURN
+    END
+
+    -- email tồn tại
+    IF EXISTS (SELECT 1 FROM Users WHERE Email=@Email)
+    BEGIN
+        SET @UserId = -2
+        RETURN
+    END
+
+    INSERT INTO Users
+    (
+        Username,
+        PasswordHash,
+        FullName,
+        Email,
+        IsActive
+    )
+    VALUES
+    (
+        @Username,
+        @Password,
+        @FullName,
+        @Email,
+        1
+    )
+
+    SET @UserId = SCOPE_IDENTITY()
+END
+GO
+
 -- =============================================
 -- TRIGGER
 -- =============================================

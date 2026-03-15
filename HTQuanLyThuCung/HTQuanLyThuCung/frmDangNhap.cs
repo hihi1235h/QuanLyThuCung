@@ -11,13 +11,17 @@ namespace HTQuanLyThuCung
     {
         private const int KHONG_CO_LOI = 0;
         private const int TAI_KHOAN_BI_KHOA = 2;
-        private int _soLanDangNhapSai = 0;
+    private int _soLanDangNhapSai = 0;
         private DateTime? _thoiGianKhoaDen = null;
 
         public frmDangNhap()
         {
             InitializeComponent();
         }
+
+        // ===============================
+        // EVENT
+        // ===============================
 
         private void btnDangNhap_Click(object sender, EventArgs e)
         {
@@ -26,7 +30,22 @@ namespace HTQuanLyThuCung
 
         private void linkDangKy_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            MessageBox.Show("Chức năng đăng ký đang phát triển");
+            frmDangKy dangKy = new frmDangKy();
+
+            if (dangKy.ShowDialog() == DialogResult.OK)
+            {
+                // lấy username vừa đăng ký
+                txtTaiKhoan.Text = dangKy.TenDangNhapDaDangKy;
+
+                MessageBox.Show(
+                    "Đăng ký thành công!\nBạn có thể đăng nhập ngay.",
+                    "Thông báo",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
+
+                txtMatKhau.Focus();
+            }
         }
 
         private void linklblQuenMatKhau_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -51,6 +70,10 @@ namespace HTQuanLyThuCung
             }
         }
 
+        // ===============================
+        // ĐĂNG NHẬP
+        // ===============================
+
         private void ThucHienDangNhap()
         {
             try
@@ -62,11 +85,17 @@ namespace HTQuanLyThuCung
                     return;
 
                 DataTable ketQua = XacThucNguoiDung();
+
                 XuLyKetQuaDangNhap(ketQua);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi đăng nhập: " + ex.Message);
+                MessageBox.Show(
+                    "Lỗi đăng nhập: " + ex.Message,
+                    "Lỗi",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
             }
         }
 
@@ -75,7 +104,14 @@ namespace HTQuanLyThuCung
             if (_thoiGianKhoaDen.HasValue && DateTime.Now < _thoiGianKhoaDen.Value)
             {
                 int soPhut = (int)(_thoiGianKhoaDen.Value - DateTime.Now).TotalMinutes;
-                MessageBox.Show($"Tài khoản bị khóa. Thử lại sau {soPhut} phút.");
+
+                MessageBox.Show(
+                    $"Tài khoản bị khóa. Thử lại sau {soPhut} phút.",
+                    "Cảnh báo",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+
                 return true;
             }
 
@@ -105,7 +141,7 @@ namespace HTQuanLyThuCung
         {
             string user = txtTaiKhoan.Text.Trim();
 
-            // HASH mật khẩu trước khi gửi xuống SQL  
+            // HASH mật khẩu
             string pass = PasswordHelper.HashPassword(txtMatKhau.Text);
 
             SqlParameter[] pr =
@@ -132,7 +168,12 @@ namespace HTQuanLyThuCung
 
             CurrentUser.SetCurrentUser(id, txtTaiKhoan.Text, ten);
 
-            MessageBox.Show("Đăng nhập thành công");
+            MessageBox.Show(
+                "Đăng nhập thành công!",
+                "Thông báo",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            );
 
             this.Hide();
 
@@ -142,20 +183,35 @@ namespace HTQuanLyThuCung
             this.Close();
         }
 
+        // ===============================
+        // ĐĂNG NHẬP THẤT BẠI
+        // ===============================
+
         private void DangNhapThatBai()
         {
             _soLanDangNhapSai++;
 
-            MessageBox.Show("Sai tài khoản hoặc mật khẩu");
+            MessageBox.Show(
+                "Sai tài khoản hoặc mật khẩu",
+                "Đăng nhập thất bại",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning
+            );
 
             if (_soLanDangNhapSai >= 5)
             {
                 _thoiGianKhoaDen = DateTime.Now.AddMinutes(5);
-                MessageBox.Show("Bạn đã nhập sai quá nhiều lần. Tài khoản bị khóa 5 phút.");
+
+                MessageBox.Show(
+                    "Bạn đã nhập sai quá nhiều lần.\nTài khoản bị khóa 5 phút.",
+                    "Cảnh báo",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
             }
 
             txtMatKhau.Clear();
             txtMatKhau.Focus();
         }
-    }  
+    }
 }
