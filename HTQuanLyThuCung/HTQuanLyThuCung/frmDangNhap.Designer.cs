@@ -12,7 +12,7 @@
         private System.Windows.Forms.CheckBox chkGhiNho;
         private System.Windows.Forms.Button btnDangNhap;
         private System.Windows.Forms.LinkLabel linkDangKy;
-        private System.Windows.Forms.LinkLabel linkQuenMK;
+        private System.Windows.Forms.LinkLabel linklblQuenMatKhau;
 
         protected override void Dispose(bool disposing)
         {
@@ -34,70 +34,71 @@
             this.chkGhiNho = new System.Windows.Forms.CheckBox();
             this.btnDangNhap = new System.Windows.Forms.Button();
             this.linkDangKy = new System.Windows.Forms.LinkLabel();
-            this.linkQuenMK = new System.Windows.Forms.LinkLabel();
+            this.linklblQuenMatKhau = new System.Windows.Forms.LinkLabel();
 
             this.SuspendLayout();
 
             // TITLE
-            labelTitle.AutoSize = true;
-            labelTitle.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold);
-            labelTitle.Location = new System.Drawing.Point(120, 20);
-            labelTitle.Text = "Z618 STORE LOGIN";
+            this.labelTitle.AutoSize = true;
+            this.labelTitle.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold);
+            this.labelTitle.Location = new System.Drawing.Point(100, 20);
+            this.labelTitle.Text = "Z618 STORE LOGIN";
 
-            // USER
-            lblTaiKhoan.AutoSize = true;
-            lblTaiKhoan.Location = new System.Drawing.Point(60, 90);
-            lblTaiKhoan.Text = "Tài khoản";
+            // USER LABEL
+            this.lblTaiKhoan.AutoSize = true;
+            this.lblTaiKhoan.Location = new System.Drawing.Point(60, 90);
+            this.lblTaiKhoan.Text = "Tài khoản";
 
-            txtTaiKhoan.Location = new System.Drawing.Point(60, 110);
-            txtTaiKhoan.Size = new System.Drawing.Size(280, 22);
-            txtTaiKhoan.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtTaiKhoan_KeyDown);
+            // USER TEXTBOX
+            this.txtTaiKhoan.Location = new System.Drawing.Point(60, 110);
+            this.txtTaiKhoan.Size = new System.Drawing.Size(280, 22);
+            this.txtTaiKhoan.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtTaiKhoan_KeyDown);
 
-            // PASS
-            lblMatKhau.AutoSize = true;
-            lblMatKhau.Location = new System.Drawing.Point(60, 150);
-            lblMatKhau.Text = "Mật khẩu";
+            // PASS LABEL
+            this.lblMatKhau.AutoSize = true;
+            this.lblMatKhau.Location = new System.Drawing.Point(60, 150);
+            this.lblMatKhau.Text = "Mật khẩu";
 
-            txtMatKhau.Location = new System.Drawing.Point(60, 170);
-            txtMatKhau.Size = new System.Drawing.Size(280, 22);
-            txtMatKhau.PasswordChar = '*';
-            txtMatKhau.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtMatKhau_KeyDown);
+            // PASS TEXTBOX
+            this.txtMatKhau.Location = new System.Drawing.Point(60, 170);
+            this.txtMatKhau.Size = new System.Drawing.Size(280, 22);
+            this.txtMatKhau.PasswordChar = '*';
+            this.txtMatKhau.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtMatKhau_KeyDown);
 
-            // CHECK
-            chkGhiNho.AutoSize = true;
-            chkGhiNho.Location = new System.Drawing.Point(60, 210);
-            chkGhiNho.Text = "Ghi nhớ đăng nhập";
+            // CHECKBOX
+            this.chkGhiNho.AutoSize = true;
+            this.chkGhiNho.Location = new System.Drawing.Point(60, 210);
+            this.chkGhiNho.Text = "Ghi nhớ đăng nhập";
 
-            // BUTTON
-            btnDangNhap.Location = new System.Drawing.Point(60, 240);
-            btnDangNhap.Size = new System.Drawing.Size(280, 35);
-            btnDangNhap.Text = "Đăng nhập";
-            btnDangNhap.Click += new System.EventHandler(this.btnDangNhap_Click);
+            // LOGIN BUTTON
+            this.btnDangNhap.Location = new System.Drawing.Point(60, 240);
+            this.btnDangNhap.Size = new System.Drawing.Size(280, 35);
+            this.btnDangNhap.Text = "Đăng nhập";
+            this.btnDangNhap.Click += new System.EventHandler(this.btnDangNhap_Click);
 
-            // LINK REGISTER
-            linkDangKy.AutoSize = true;
-            linkDangKy.Location = new System.Drawing.Point(230, 290);
-            linkDangKy.Text = "Đăng ký";
-            linkDangKy.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkDangKy_LinkClicked);
+            // LINK QUÊN MẬT KHẨU
+            this.linklblQuenMatKhau.AutoSize = true;
+            this.linklblQuenMatKhau.Location = new System.Drawing.Point(60, 290);
+            this.linklblQuenMatKhau.Text = "Quên mật khẩu";
+            this.linklblQuenMatKhau.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linklblQuenMatKhau_LinkClicked);
 
-            // LINK FORGOT
-            linkQuenMK.AutoSize = true;
-            linkQuenMK.Location = new System.Drawing.Point(60, 290);
-            linkQuenMK.Text = "Quên mật khẩu";
-            linkQuenMK.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkQuenMK_LinkClicked);
+            // LINK ĐĂNG KÝ
+            this.linkDangKy.AutoSize = true;
+            this.linkDangKy.Location = new System.Drawing.Point(250, 290);
+            this.linkDangKy.Text = "Đăng ký";
+            this.linkDangKy.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkDangKy_LinkClicked);
 
             // FORM
             this.ClientSize = new System.Drawing.Size(400, 330);
-
-            this.Controls.Add(labelTitle);
-            this.Controls.Add(lblTaiKhoan);
-            this.Controls.Add(txtTaiKhoan);
-            this.Controls.Add(lblMatKhau);
-            this.Controls.Add(txtMatKhau);
-            this.Controls.Add(chkGhiNho);
-            this.Controls.Add(btnDangNhap);
-            this.Controls.Add(linkDangKy);
-            this.Controls.Add(linkQuenMK);
+            this.Controls.Add(this.labelTitle);
+            this.Controls.Add(this.lblTaiKhoan);
+            this.Controls.Add(this.txtTaiKhoan);
+            this.Controls.Add(this.lblMatKhau);
+            this.Controls.Add(this.txtMatKhau);
+            this.Controls.Add(this.chkGhiNho);
+            this.Controls.Add(this.btnDangNhap);
+            this.Controls.Add(this.linklblQuenMatKhau);
+            this.Controls.Add(this.linkDangKy);
 
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Đăng nhập - Quản lý thú cưng";

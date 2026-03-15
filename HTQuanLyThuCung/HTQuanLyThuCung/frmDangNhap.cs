@@ -30,9 +30,10 @@ namespace HTQuanLyThuCung
             MessageBox.Show("Chức năng đăng ký đang phát triển");
         }
 
-        private void linkQuenMK_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void linklblQuenMatKhau_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            MessageBox.Show("Chức năng quên mật khẩu đang phát triển");
+            frmQuenMK quenMK = new frmQuenMK();
+            quenMK.ShowDialog();
         }
 
         private void txtTaiKhoan_KeyDown(object sender, KeyEventArgs e)

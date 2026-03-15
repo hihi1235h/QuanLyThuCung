@@ -216,6 +216,48 @@ AND IsActive=1
 END
 GO
 
+IF OBJECT_ID('sp_ResetPassword','P') IS NOT NULL
+DROP PROCEDURE sp_ResetPassword
+GO
+
+CREATE PROCEDURE sp_ResetPassword
+@UsernameOrEmail NVARCHAR(100),
+@NewPassword NVARCHAR(255),
+@Result INT OUTPUT
+AS
+BEGIN
+
+DECLARE @id INT
+DECLARE @active BIT
+
+SELECT 
+    @id = Id,
+    @active = IsActive
+FROM Users
+WHERE Username = @UsernameOrEmail
+OR Email = @UsernameOrEmail
+
+IF @id IS NULL
+BEGIN
+    SET @Result = -1
+    RETURN
+END
+
+IF @active = 0
+BEGIN
+    SET @Result = -2
+    RETURN
+END
+
+UPDATE Users
+SET PasswordHash = @NewPassword
+WHERE Id = @id
+
+SET @Result = 1
+
+END
+GO
+
 -- =============================================
 -- TRIGGER
 -- =============================================
