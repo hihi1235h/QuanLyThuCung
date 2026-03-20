@@ -118,10 +118,12 @@ namespace HTQuanLyThuCung
             lblTitle.Text = "Dịch vụ";
             panelDashboard.Visible = false;
 
-            MessageBox.Show("Chức năng Dịch vụ đang được phát triển!",
-                "Thông báo",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
+            OpenChildForm(new frmDichVu());
+
+            //MessageBox.Show("Chức năng Dịch vụ đang được phát triển!",
+            //"Thông báo",
+            //MessageBoxButtons.OK,
+            //MessageBoxIcon.Information);
         }
 
         private void btnNhanVien_Click(object sender, EventArgs e)
