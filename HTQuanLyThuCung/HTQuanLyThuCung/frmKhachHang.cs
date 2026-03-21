@@ -39,7 +39,11 @@ namespace QuanLyThuCung
             {
                 customers = new List<Customer>();
                 DataTable dtCustomers = DatabaseHelper.ExecuteQuery(
-                    "SELECT * FROM Customers ORDER BY Id");
+                    @"SELECT Id, CustomerName, Phone, Address,
+                      ISNULL(Email,'') AS Email,
+                      ISNULL(OtherInfo,'') AS OtherInfo
+                      FROM Customers ORDER BY Id");
+
                 foreach (DataRow row in dtCustomers.Rows)
                 {
                     customers.Add(new Customer
@@ -48,17 +52,17 @@ namespace QuanLyThuCung
                         Name = row["CustomerName"].ToString(),
                         Phone = row["Phone"].ToString(),
                         Address = row["Address"].ToString(),
-                        Email = "",
-                        OtherInfo = ""
+                        Email = row["Email"].ToString(),      // ✅ Lấy thật
+                        OtherInfo = row["OtherInfo"].ToString()   // ✅ Lấy thật
                     });
                 }
 
                 pets = new List<Pet>();
-                DataTable dtPets = DatabaseHelper.ExecuteStoredProcedure("sp_GetPets");
+                DataTable dtPets = DatabaseHelper.ExecuteQuery(
+                    "SELECT Id, PetName, Species, Breed, Age, CustomerId FROM Pets ORDER BY Id");
+
                 foreach (DataRow row in dtPets.Rows)
                 {
-                    var owner = customers.FirstOrDefault(
-                        c => c.Name == row["CustomerName"].ToString());
                     pets.Add(new Pet
                     {
                         Id = Convert.ToInt32(row["Id"]),
@@ -66,7 +70,7 @@ namespace QuanLyThuCung
                         Type = row["Species"].ToString(),
                         Breed = row["Breed"].ToString(),
                         Age = Convert.ToInt32(row["Age"]),
-                        CustomerId = owner?.Id ?? 0
+                        CustomerId = Convert.ToInt32(row["CustomerId"]) // ✅ Đúng
                     });
                 }
 
@@ -84,14 +88,34 @@ namespace QuanLyThuCung
 
         private void AddCustomerToDB(Customer c)
         {
-            string query = @"INSERT INTO Customers (CustomerName, Phone, Address)
-                             VALUES (@Name, @Phone, @Address);
+            string query = @"INSERT INTO Customers (CustomerName, Phone, Address, Email, OtherInfo)
+                             VALUES (@Name, @Phone, @Address, @Email, @OtherInfo);
                              SELECT SCOPE_IDENTITY();";
             var id = DatabaseHelper.ExecuteScalar(query,
                 new System.Data.SqlClient.SqlParameter("@Name", c.Name),
                 new System.Data.SqlClient.SqlParameter("@Phone", c.Phone),
-                new System.Data.SqlClient.SqlParameter("@Address", c.Address));
+                new System.Data.SqlClient.SqlParameter("@Address", c.Address),
+                new System.Data.SqlClient.SqlParameter("@Email", c.Email ?? ""),
+                new System.Data.SqlClient.SqlParameter("@OtherInfo", c.OtherInfo ?? ""));
             c.Id = Convert.ToInt32(id);
+        }
+
+        private void UpdateCustomerToDB(Customer c)
+        {
+            string query = @"UPDATE Customers SET
+                             CustomerName = @Name,
+                             Phone        = @Phone,
+                             Address      = @Address,
+                             Email        = @Email,
+                             OtherInfo    = @OtherInfo
+                             WHERE Id = @Id";
+            DatabaseHelper.ExecuteNonQuery(query,
+                new System.Data.SqlClient.SqlParameter("@Name", c.Name),
+                new System.Data.SqlClient.SqlParameter("@Phone", c.Phone),
+                new System.Data.SqlClient.SqlParameter("@Address", c.Address),
+                new System.Data.SqlClient.SqlParameter("@Email", c.Email ?? ""),
+                new System.Data.SqlClient.SqlParameter("@OtherInfo", c.OtherInfo ?? ""),
+                new System.Data.SqlClient.SqlParameter("@Id", c.Id));
         }
 
         private void DeleteCustomerFromDB(int customerId)
@@ -161,9 +185,9 @@ namespace QuanLyThuCung
 
         private class frmNhapKhachHang : Form
         {
-            private TextBox txtName, txtPhone, txtAddress;
+            private TextBox txtName, txtPhone, txtAddress, txtEmail, txtOtherInfo;
             private Button btnLuu, btnHuy;
-            private Label lblName, lblPhone, lblAddress;
+            private Label lblName, lblPhone, lblAddress, lblEmail, lblOtherInfo;
             private Panel headerPanel;
             private Label lblTitleForm;
 
@@ -182,7 +206,7 @@ namespace QuanLyThuCung
                 Color textColor = Color.FromArgb(44, 62, 80);
 
                 this.Text = "Thêm khách hàng mới";
-                this.Size = new Size(560, 400);
+                this.Size = new Size(560, 530); // ✅ Cao hơn để chứa 5 field
                 this.FormBorderStyle = FormBorderStyle.FixedDialog;
                 this.StartPosition = FormStartPosition.CenterParent;
                 this.MaximizeBox = false;
@@ -207,7 +231,6 @@ namespace QuanLyThuCung
                 headerPanel.Controls.Add(lblTitleForm);
                 this.Controls.Add(headerPanel);
 
-                // Helper tạo label
                 Action<Label, string, int> addLabel = (lbl, text, y) =>
                 {
                     lbl.Text = text;
@@ -231,15 +254,19 @@ namespace QuanLyThuCung
                 lblName = new Label(); txtName = new TextBox();
                 lblPhone = new Label(); txtPhone = new TextBox();
                 lblAddress = new Label(); txtAddress = new TextBox();
+                lblEmail = new Label(); txtEmail = new TextBox();
+                lblOtherInfo = new Label(); txtOtherInfo = new TextBox();
 
                 addLabel(lblName, "Họ và tên:", 85); addTextBox(txtName, 110);
                 addLabel(lblPhone, "Số điện thoại:", 152); addTextBox(txtPhone, 177);
                 addLabel(lblAddress, "Địa chỉ:", 219); addTextBox(txtAddress, 244);
+                addLabel(lblEmail, "Email:", 286); addTextBox(txtEmail, 311);
+                addLabel(lblOtherInfo, "Thông tin khác:", 353); addTextBox(txtOtherInfo, 378);
 
                 btnLuu = new Button
                 {
                     Text = "💾 Lưu",
-                    Location = new Point(190, 295),
+                    Location = new Point(190, 430),
                     Size = new Size(140, 42),
                     BackColor = accentColor,
                     ForeColor = Color.White,
@@ -255,7 +282,7 @@ namespace QuanLyThuCung
                 btnHuy = new Button
                 {
                     Text = "❌ Hủy",
-                    Location = new Point(345, 295),
+                    Location = new Point(345, 430),
                     Size = new Size(140, 42),
                     BackColor = dangerColor,
                     ForeColor = Color.White,
@@ -304,8 +331,8 @@ namespace QuanLyThuCung
                     Name = txtName.Text.Trim(),
                     Phone = txtPhone.Text.Trim(),
                     Address = txtAddress.Text.Trim(),
-                    Email = "",
-                    OtherInfo = ""
+                    Email = txtEmail.Text.Trim(),
+                    OtherInfo = txtOtherInfo.Text.Trim()
                 };
             }
         }
@@ -323,7 +350,7 @@ namespace QuanLyThuCung
                 dgvCustomers.Rows[rowIndex].Cells["colPhone"].Value = customer.Phone;
                 dgvCustomers.Rows[rowIndex].Cells["colEmail"].Value = customer.Email;
                 dgvCustomers.Rows[rowIndex].Cells["colOtherInfo"].Value = customer.OtherInfo;
-                dgvCustomers.Rows[rowIndex].Tag = customer.Id; // ✅ Lưu ID thật
+                dgvCustomers.Rows[rowIndex].Tag = customer.Id;
             }
             dgvCustomers.Refresh();
         }
@@ -373,7 +400,8 @@ namespace QuanLyThuCung
             else if (dgvCustomers.Columns[e.ColumnIndex].Name == "colDelete")
             {
                 string name = dgvCustomers.Rows[e.RowIndex].Cells["colName"].Value.ToString();
-                if (MessageBox.Show($"Bạn có chắc chắn muốn xóa khách hàng \"{name}\"?",
+                if (MessageBox.Show(
+                    $"Bạn có chắc chắn muốn xóa khách hàng \"{name}\"?",
                     "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Warning)
                     == DialogResult.Yes)
                 {
@@ -387,8 +415,8 @@ namespace QuanLyThuCung
             Customer customer = customers.Find(c => c.Id == customerId);
             if (customer == null) return;
 
-            var histories = new List<PurchaseHistory>();
             var customerPets = pets.FindAll(p => p.CustomerId == customerId);
+            var histories = new List<PurchaseHistory>();
 
             frmKhachHang_ChiTiet detailForm =
                 new frmKhachHang_ChiTiet(customer, histories, customerPets, this);
