@@ -1,5 +1,8 @@
-﻿using System;
+﻿using HTQuanLyThuCung.DataAccess;
+using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -10,20 +13,20 @@ namespace QuanLyThuCung
     public partial class frmKhachHang_ChiTiet : Form
     {
         private Customer customer;
-        private List<PurchaseHistory> purchaseHistories;
         private List<Pet> customerPets;
         private frmKhachHang parentForm;
         private bool isEditMode = false;
 
-        public frmKhachHang_ChiTiet(Customer customer, List<PurchaseHistory> histories, List<Pet> pets, frmKhachHang parent)
+        public frmKhachHang_ChiTiet(Customer customer, List<PurchaseHistory> histories,
+            List<Pet> pets, frmKhachHang parent)
         {
             InitializeComponent();
             this.customer = customer;
-            this.purchaseHistories = histories;
             this.customerPets = pets;
             this.parentForm = parent;
             LoadData();
             LoadPetList();
+            LoadPurchaseHistoryFromDB(); // ✅ Load từ DB thật
         }
 
         private void LoadData()
@@ -33,24 +36,61 @@ namespace QuanLyThuCung
             txtAddress.Text = customer.Address;
             txtEmail.Text = customer.Email;
             txtOtherInfo.Text = customer.OtherInfo;
-
-            dgvPurchaseHistory.Rows.Clear();
-            foreach (var history in purchaseHistories)
-            {
-                int rowIndex = dgvPurchaseHistory.Rows.Add();
-                dgvPurchaseHistory.Rows[rowIndex].Cells["colInvoiceId"].Value = history.InvoiceId;
-                dgvPurchaseHistory.Rows[rowIndex].Cells["colDate"].Value = history.Date.ToString("dd/MM/yyyy HH:mm:ss");
-                dgvPurchaseHistory.Rows[rowIndex].Cells["colTotal"].Value = history.TotalAmount.ToString("N0") + "đ";
-                dgvPurchaseHistory.Rows[rowIndex].Cells["colEmployee"].Value = history.Employee;
-            }
-
             SetReadOnlyMode(true);
+        }
+
+        private void LoadPurchaseHistoryFromDB()
+        {
+            try
+            {
+                dgvPurchaseHistory.Rows.Clear();
+
+                DataTable dt = DatabaseHelper.ExecuteStoredProcedure(
+                    "sp_GetHoaDonByCustomer",
+                    new SqlParameter("@CustomerId", customer.Id));
+
+                foreach (DataRow row in dt.Rows)
+                {
+                    int rowIndex = dgvPurchaseHistory.Rows.Add();
+                    dgvPurchaseHistory.Rows[rowIndex].Cells["colInvoiceId"].Value =
+                        row["MaHD"].ToString();
+                    dgvPurchaseHistory.Rows[rowIndex].Cells["colDate"].Value =
+                        Convert.ToDateTime(row["NgayLap"]).ToString("dd/MM/yyyy HH:mm");
+                    dgvPurchaseHistory.Rows[rowIndex].Cells["colTotal"].Value =
+                        Convert.ToDecimal(row["TongTien"]).ToString("N0") + " đ";
+                    dgvPurchaseHistory.Rows[rowIndex].Cells["colEmployee"].Value =
+                        row["NhanVien"].ToString();
+
+                    // Lưu HoaDonId vào Tag để sau này xem chi tiết
+                    dgvPurchaseHistory.Rows[rowIndex].Tag =
+                        Convert.ToInt32(row["MaHD"]);
+                }
+
+                dgvPurchaseHistory.EnableHeadersVisualStyles = false;
+                dgvPurchaseHistory.ColumnHeadersDefaultCellStyle.BackColor =
+                    Color.FromArgb(41, 128, 185);
+                dgvPurchaseHistory.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+                dgvPurchaseHistory.ColumnHeadersDefaultCellStyle.Font =
+                    new Font("Segoe UI", 9f, FontStyle.Bold);
+                dgvPurchaseHistory.DefaultCellStyle.Font = new Font("Segoe UI", 9f);
+                dgvPurchaseHistory.AlternatingRowsDefaultCellStyle.BackColor =
+                    Color.FromArgb(245, 245, 245);
+                dgvPurchaseHistory.RowHeadersVisible = false;
+                dgvPurchaseHistory.BorderStyle = BorderStyle.None;
+            }
+            catch (Exception ex)
+            {
+                // Nếu bảng HoaDon chưa tạo thì bỏ qua lỗi
+                if (ex.Message.Contains("HoaDon") || ex.Message.Contains("sp_GetHoaDonByCustomer"))
+                    return;
+                MessageBox.Show("Lỗi tải lịch sử: " + ex.Message,
+                    "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void LoadPetList()
         {
             dgvPets.Rows.Clear();
-
             foreach (var pet in customerPets)
             {
                 int rowIndex = dgvPets.Rows.Add();
@@ -72,26 +112,17 @@ namespace QuanLyThuCung
             txtEmail.ReadOnly = readOnly;
             txtOtherInfo.ReadOnly = readOnly;
 
-            if (readOnly)
-            {
-                txtName.BackColor = Color.FromArgb(220, 220, 220);
-                txtPhone.BackColor = Color.FromArgb(220, 220, 220);
-                txtAddress.BackColor = Color.FromArgb(220, 220, 220);
-                txtEmail.BackColor = Color.FromArgb(220, 220, 220);
-                txtOtherInfo.BackColor = Color.FromArgb(220, 220, 220);
-                btnEdit.Text = "Sửa";
-                btnEdit.BackColor = Color.FromArgb(76, 175, 80);
-            }
-            else
-            {
-                txtName.BackColor = Color.White;
-                txtPhone.BackColor = Color.White;
-                txtAddress.BackColor = Color.White;
-                txtEmail.BackColor = Color.White;
-                txtOtherInfo.BackColor = Color.White;
-                btnEdit.Text = "Lưu";
-                btnEdit.BackColor = Color.FromArgb(33, 150, 243);
-            }
+            Color bg = readOnly ? Color.FromArgb(220, 220, 220) : Color.White;
+            txtName.BackColor = bg;
+            txtPhone.BackColor = bg;
+            txtAddress.BackColor = bg;
+            txtEmail.BackColor = bg;
+            txtOtherInfo.BackColor = bg;
+
+            btnEdit.Text = readOnly ? "Sửa" : "Lưu";
+            btnEdit.BackColor = readOnly
+                ? Color.FromArgb(76, 175, 80)
+                : Color.FromArgb(33, 150, 243);
         }
 
         private void btnEdit_Click(object sender, EventArgs e)
@@ -111,8 +142,31 @@ namespace QuanLyThuCung
                 customer.Email = txtEmail.Text.Trim();
                 customer.OtherInfo = txtOtherInfo.Text.Trim();
 
-                MessageBox.Show("Cập nhật thông tin khách hàng thành công!", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                try
+                {
+                    DatabaseHelper.ExecuteNonQuery(
+                        @"UPDATE Customers SET
+                          CustomerName = @Name,
+                          Phone        = @Phone,
+                          Address      = @Address,
+                          Email        = @Email,
+                          OtherInfo    = @OtherInfo
+                          WHERE Id = @Id",
+                        new SqlParameter("@Name", customer.Name),
+                        new SqlParameter("@Phone", customer.Phone),
+                        new SqlParameter("@Address", customer.Address),
+                        new SqlParameter("@Email", customer.Email ?? ""),
+                        new SqlParameter("@OtherInfo", customer.OtherInfo ?? ""),
+                        new SqlParameter("@Id", customer.Id));
+
+                    MessageBox.Show("✅ Cập nhật thành công!", "Thông báo",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi cập nhật: " + ex.Message,
+                        "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
 
                 isEditMode = false;
                 SetReadOnlyMode(true);
@@ -130,28 +184,44 @@ namespace QuanLyThuCung
             this.Close();
         }
 
-        // ✅ Thêm thú cưng
         private void btnAddPet_Click(object sender, EventArgs e)
         {
-            frmPetForm petForm = new frmPetForm(null, true); // true = chế độ thêm
+            frmPetForm petForm = new frmPetForm(null, true);
             if (petForm.ShowDialog() == DialogResult.OK)
             {
                 Pet newPet = petForm.GetPetData();
                 newPet.CustomerId = customer.Id;
-                newPet.Id = GetNextPetId();
 
-                customerPets.Add(newPet);
-                LoadPetList();
+                try
+                {
+                    DatabaseHelper.ExecuteStoredProcedure("sp_AddPet",
+                        new SqlParameter("@PetName", newPet.Name),
+                        new SqlParameter("@Species", newPet.Type),
+                        new SqlParameter("@Breed", newPet.Breed),
+                        new SqlParameter("@Age", newPet.Age),
+                        new SqlParameter("@CustomerId", newPet.CustomerId));
 
-                // Cập nhật lại danh sách pets ở form cha
-                parentForm.RefreshPetList(customer.Id, customerPets);
+                    object newId = DatabaseHelper.ExecuteScalar(
+                        "SELECT MAX(Id) FROM Pets WHERE CustomerId=@CId AND PetName=@Name",
+                        new SqlParameter("@CId", newPet.CustomerId),
+                        new SqlParameter("@Name", newPet.Name));
+                    newPet.Id = Convert.ToInt32(newId);
 
-                MessageBox.Show("Thêm thú cưng thành công!", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    customerPets.Add(newPet);
+                    LoadPetList();
+                    parentForm.RefreshPetList(customer.Id, customerPets);
+
+                    MessageBox.Show("✅ Thêm thú cưng thành công!", "Thông báo",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi thêm thú cưng: " + ex.Message,
+                        "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
-        // ✅ Sửa thú cưng
         private void dgvPets_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -173,23 +243,36 @@ namespace QuanLyThuCung
             Pet pet = customerPets.Find(p => p.Id == petId);
             if (pet == null) return;
 
-            frmPetForm petForm = new frmPetForm(pet, false); // false = chế độ sửa
+            frmPetForm petForm = new frmPetForm(pet, false);
             if (petForm.ShowDialog() == DialogResult.OK)
             {
-                Pet updatedPet = petForm.GetPetData();
-                updatedPet.Id = pet.Id;
-                updatedPet.CustomerId = customer.Id;
+                Pet updated = petForm.GetPetData();
+                updated.Id = pet.Id;
+                updated.CustomerId = customer.Id;
 
-                // Cập nhật trong list
-                int index = customerPets.FindIndex(p => p.Id == petId);
-                if (index >= 0)
-                    customerPets[index] = updatedPet;
+                try
+                {
+                    DatabaseHelper.ExecuteStoredProcedure("sp_UpdatePet",
+                        new SqlParameter("@PetId", updated.Id),
+                        new SqlParameter("@PetName", updated.Name),
+                        new SqlParameter("@Species", updated.Type),
+                        new SqlParameter("@Breed", updated.Breed),
+                        new SqlParameter("@Age", updated.Age));
 
-                LoadPetList();
-                parentForm.RefreshPetList(customer.Id, customerPets);
+                    int index = customerPets.FindIndex(p => p.Id == petId);
+                    if (index >= 0) customerPets[index] = updated;
 
-                MessageBox.Show("Cập nhật thú cưng thành công!", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadPetList();
+                    parentForm.RefreshPetList(customer.Id, customerPets);
+
+                    MessageBox.Show("✅ Cập nhật thú cưng thành công!", "Thông báo",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi cập nhật: " + ex.Message,
+                        "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
@@ -198,15 +281,26 @@ namespace QuanLyThuCung
             Pet pet = customerPets.Find(p => p.Id == petId);
             if (pet == null) return;
 
-            if (MessageBox.Show($"Bạn có chắc chắn muốn xóa thú cưng \"{pet.Name}\"?",
-                "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+            if (MessageBox.Show($"Bạn có chắc muốn xóa thú cưng \"{pet.Name}\"?",
+                "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
             {
-                customerPets.RemoveAll(p => p.Id == petId);
-                LoadPetList();
-                parentForm.RefreshPetList(customer.Id, customerPets);
+                try
+                {
+                    DatabaseHelper.ExecuteStoredProcedure("sp_DeletePet",
+                        new SqlParameter("@PetId", petId));
 
-                MessageBox.Show("Xóa thú cưng thành công!", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    customerPets.RemoveAll(p => p.Id == petId);
+                    LoadPetList();
+                    parentForm.RefreshPetList(customer.Id, customerPets);
+
+                    MessageBox.Show("✅ Xóa thú cưng thành công!", "Thông báo",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi xóa: " + ex.Message,
+                        "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
